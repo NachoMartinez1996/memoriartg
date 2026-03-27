@@ -161,18 +161,20 @@ function verificarPareja() {
             
             // Verificar si todas las tarjetas están ocultas DESPUÉS de ocultar el par actual
             const tarjetasVisibles = document.querySelectorAll('.tarjeta:not(.oculta)');
-if (tarjetasVisibles.length === 0) {
-    setTimeout(() => {
-        finalizarJuego(true);
-    }, 500); // Pequeño delay para que se complete la animación
-}
- else {
+            if (tarjetasVisibles.length === 0) {
+                setTimeout(() => {
+                    finalizarJuego(true);
+                }, 500); // Pequeño delay para que se complete la animación
+            }
+            tarjetasSeleccionadas = [];
+        }, 600);
+    } else {
         setTimeout(() => {
             tarjeta1.classList.remove("volteada");
             tarjeta2.classList.remove("volteada");
-        }, 300);
+            tarjetasSeleccionadas = [];
+        }, 600);
     }
-    tarjetasSeleccionadas = [];
 }
 
         function iniciarTemporizador() {
@@ -217,7 +219,6 @@ function finalizarJuego(ganado) {
         }
 
         // Inicialización
-        crearTablero();
         document.getElementById("tiempo").textContent = tiempoRestante;
     </script>
 </body>
