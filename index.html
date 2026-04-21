@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosario Te Guío | Juegos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="app-shell">
+        <section class="hero">
+            <p class="eyebrow">Experiencia interactiva</p>
+            <h1>Rosario Te Guío</h1>
+            <p class="hero-copy">
+                Elegí entre el juego de memoria clásico y el desafío de tarjetas. Ambos juegos usan el
+                logo como dorso y muestran su contenido al girar cada carta.
+            </p>
+            <div class="hero-actions">
+                <button id="clear-cache-btn" class="ghost-button" type="button">Limpiar caché</button>
+                <p id="cache-feedback" class="hero-actions__hint">
+                    Borra la caché del navegador para este sitio y recarga una versión fresca.
+                </p>
+            </div>
+        </section>
+
+        <section id="home-view" class="view view--active" aria-labelledby="home-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Vista inicial</p>
+                    <h2 id="home-title">Seleccioná tu juego</h2>
+                </div>
+            </div>
+
+            <div class="mode-grid">
+                <article class="mode-card">
+                    <p class="mode-card__tag">Módulo 1</p>
+                    <h3>Juego de Memoria</h3>
+                    <p>
+                        Encontrá las 12 parejas entre imágenes y referencias en una grilla fija de 6 x 4.
+                    </p>
+                    <button class="primary-button" type="button" data-open-view="memory-view">
+                        Jugar memoria
+                    </button>
+                </article>
+
+                <article class="mode-card mode-card--accent">
+                    <p class="mode-card__tag">Módulo 2</p>
+                    <h3>Desafío Rosario Te Guío</h3>
+                    <p>
+                        Descubrí palabras de marca o activá una trivia. Las preguntas aparecen sobre el
+                        tablero, una a la vez.
+                    </p>
+                    <button class="primary-button" type="button" data-open-view="challenge-view">
+                        Jugar desafío
+                    </button>
+                </article>
+            </div>
+        </section>
+
+        <section id="memory-view" class="view" aria-labelledby="memory-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Módulo 1</p>
+                    <h2 id="memory-title">Juego de Memoria</h2>
+                </div>
+                <button class="ghost-button" type="button" data-open-view="home-view">
+                    Volver al inicio
+                </button>
+            </div>
+
+            <div class="panel panel--status">
+                <div class="status-chip">
+                    <span>Tiempo restante</span>
+                    <strong id="memory-time">120 s</strong>
+                </div>
+                <div class="status-chip">
+                    <span>Pares encontrados</span>
+                    <strong id="memory-progress">0 / 12</strong>
+                </div>
+                <div class="action-row">
+                    <button id="memory-start-btn" class="primary-button" type="button">Iniciar juego</button>
+                    <button id="memory-reset-btn" class="secondary-button" type="button">Reiniciar</button>
+                </div>
+            </div>
+
+            <div id="memory-feedback" class="notice notice--neutral" aria-live="polite">
+                Emparejá cada imagen con su referencia antes de que termine el tiempo.
+            </div>
+
+            <div id="memory-board" class="board board--memory" aria-live="polite"></div>
+        </section>
+
+        <section id="challenge-view" class="view" aria-labelledby="challenge-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Módulo 2</p>
+                    <h2 id="challenge-title">Desafío Rosario Te Guío</h2>
+                </div>
+                <button class="ghost-button" type="button" data-open-view="home-view">
+                    Volver al inicio
+                </button>
+            </div>
+
+            <div class="panel panel--status">
+                <div class="status-chip">
+                    <span>Tablero</span>
+                    <strong>3 x 3 tarjetas</strong>
+                </div>
+                <div class="status-chip">
+                    <span id="challenge-word-label">Ruta de palabras</span>
+                    <strong id="challenge-word-count">0 / 3</strong>
+                </div>
+                <div class="action-row">
+                    <button id="challenge-reset-btn" class="primary-button" type="button">Nueva partida</button>
+                </div>
+            </div>
+
+            <div id="challenge-feedback" class="notice notice--neutral" aria-live="polite">
+                Elegí tarjetas sobre el tablero. Si encontrás las tres palabras, ganás; si abrís una trivia,
+                respondés tres preguntas consecutivas.
+            </div>
+
+            <div class="board-shell">
+                <div id="challenge-board" class="board board--challenge" aria-live="polite"></div>
+
+                <div id="challenge-overlay" class="challenge-overlay is-hidden" aria-live="polite">
+                    <div id="challenge-quiz-card" class="challenge-popup is-hidden">
+                        <p id="challenge-quiz-title" class="challenge-popup__title">Trivia</p>
+                        <p id="challenge-quiz-progress" class="challenge-popup__progress">Pregunta 1 de 3</p>
+                        <h3 id="challenge-question" class="challenge-popup__question"></h3>
+                        <div id="challenge-options" class="quiz-options"></div>
+                        <p id="challenge-answer-feedback" class="quiz-answer-feedback" aria-live="polite"></p>
+
+                        <div id="challenge-question-meta" class="quiz-meta is-hidden">
+                            <div id="challenge-reference-block" class="quiz-meta__block is-hidden">
+                                <p class="quiz-meta__label">Referencia</p>
+                                <p id="challenge-reference-text" class="quiz-meta__text"></p>
+                            </div>
+
+                            <div id="challenge-sources-block" class="quiz-meta__block is-hidden">
+                                <p id="challenge-sources-label" class="quiz-meta__label">Fuente</p>
+                                <div id="challenge-sources-list" class="quiz-meta__stack"></div>
+                            </div>
+                        </div>
+
+                        <div class="challenge-popup__actions">
+                            <button id="challenge-continue-btn" class="secondary-button is-hidden" type="button">
+                                Continuar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="challenge-result-card" class="challenge-popup challenge-popup--result is-hidden">
+                        <p id="challenge-result-tag" class="challenge-popup__progress">Resultado</p>
+                        <h3 id="challenge-result-title" class="challenge-popup__question"></h3>
+                        <p id="challenge-result-text" class="challenge-popup__text"></p>
+                        <div class="challenge-popup__actions">
+                            <button id="challenge-overlay-reset-btn" class="primary-button" type="button">
+                                Nueva partida
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js" charset="UTF-8"></script>
+</body>
+</html>
