@@ -1,4 +1,4 @@
-const VERSION_CACHE = "1.0.1";
+const VERSION_CACHE = "1.1.0";
 const CACHE_SHELL = `rosario-shell-${VERSION_CACHE}`;
 const CACHE_RUNTIME = `rosario-runtime-${VERSION_CACHE}`;
 const APP_SHELL = "./index.html";
@@ -148,7 +148,6 @@ self.addEventListener("install", event => {
     event.waitUntil(
         caches.open(CACHE_SHELL)
             .then(cache => cache.addAll(shellFiles))
-            .then(() => self.skipWaiting())
     );
 });
 

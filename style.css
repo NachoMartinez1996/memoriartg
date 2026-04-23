@@ -141,6 +141,67 @@ body::before {
     color: var(--ink-muted);
 }
 
+.hero-toolbar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.status-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(20, 50, 74, 0.1);
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: 0 10px 24px rgba(11, 52, 89, 0.08);
+    font-size: 0.92rem;
+    color: var(--ink);
+}
+
+.status-pill__icon {
+    display: inline-flex;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    flex: 0 0 12px;
+    background: rgba(72, 97, 116, 0.34);
+    box-shadow: 0 0 0 4px rgba(72, 97, 116, 0.12);
+}
+
+.status-pill--success .status-pill__icon {
+    background: var(--success);
+    box-shadow: 0 0 0 4px rgba(47, 143, 78, 0.14);
+}
+
+.status-pill--warning .status-pill__icon {
+    background: #d28a00;
+    box-shadow: 0 0 0 4px rgba(246, 190, 0, 0.2);
+}
+
+.status-pill--pending .status-pill__icon {
+    background: var(--brand-blue);
+    box-shadow: 0 0 0 4px rgba(11, 94, 168, 0.14);
+}
+
+.status-pill--danger .status-pill__icon {
+    background: var(--danger);
+    box-shadow: 0 0 0 4px rgba(215, 77, 57, 0.14);
+}
+
 .hero-actions {
     position: relative;
     z-index: 1;
@@ -151,11 +212,43 @@ body::before {
     margin-top: 20px;
 }
 
+.hero-toolbar .hero-actions {
+    margin-top: 0;
+}
+
 .hero-actions__hint {
     margin: 0;
     font-size: 0.94rem;
     line-height: 1.5;
     color: var(--ink-muted);
+}
+
+.update-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.update-banner__body {
+    display: grid;
+    gap: 4px;
+}
+
+.update-banner__body strong {
+    font-size: 1rem;
+    color: var(--ink);
+}
+
+.update-banner__body p {
+    margin: 0;
+    color: var(--ink-muted);
+}
+
+.update-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .view {
@@ -892,6 +985,30 @@ button:disabled {
         line-height: 1.6;
     }
 
+    .hero-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .status-pills {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .status-pill {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .hero-actions {
+        width: 100%;
+        margin-top: 0;
+    }
+
+    .hero-actions > button {
+        width: 100%;
+    }
+
     .view {
         padding: 18px 16px 20px;
     }
@@ -989,6 +1106,19 @@ button:disabled {
     .notice {
         padding: 14px 15px;
         font-size: 0.95rem;
+    }
+
+    .update-banner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .update-banner__actions {
+        width: 100%;
+    }
+
+    .update-banner__actions > button {
+        width: 100%;
     }
 
     .challenge-overlay {

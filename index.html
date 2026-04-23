@@ -30,8 +30,46 @@
             <h1>Rosario Te Guío</h1>
             <p class="hero-copy">
                 Elegí entre el juego de memoria clásico y el desafío de tarjetas.
+                La webapp también puede instalarse y quedar disponible sin conexión.
+            </p>
+
+            <div class="hero-toolbar">
+                <div class="status-pills" aria-live="polite">
+                    <div id="offline-status" class="status-pill status-pill--pending">
+                        <span class="status-pill__icon" aria-hidden="true"></span>
+                        <span id="offline-status-label">Comprobando modo offline…</span>
+                    </div>
+                    <div id="update-status" class="status-pill status-pill--neutral is-hidden">
+                        <span class="status-pill__icon" aria-hidden="true"></span>
+                        <span id="update-status-label">Nueva versión disponible</span>
+                    </div>
+                </div>
+
+                <div class="hero-actions">
+                    <button id="clear-cache-btn" class="ghost-button" type="button">
+                        Limpiar caché
+                    </button>
+                </div>
+            </div>
+
+            <p id="cache-feedback" class="hero-actions__hint" aria-live="polite">
+                El indicador offline te avisa cuando esta página ya quedó guardada en el dispositivo.
             </p>
         </section>
+
+        <div id="update-banner" class="notice notice--warning is-hidden" aria-live="polite">
+            <div class="update-banner__body">
+                <strong id="update-banner-title">Nueva versión disponible.</strong>
+                <p id="update-banner-text">
+                    Ya hay una actualización lista para aplicar en esta webapp.
+                </p>
+            </div>
+            <div class="update-banner__actions">
+                <button id="update-app-btn" class="secondary-button" type="button">
+                    Actualizar ahora
+                </button>
+            </div>
+        </div>
 
         <section id="home-view" class="view view--active" aria-labelledby="home-title">
             <div class="section-heading">

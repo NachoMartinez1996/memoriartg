@@ -1,5 +1,18 @@
 ﻿// Data - Logo Sources
 const logoSources = ["logo.png", "Logo.png"];
+const APP_SHELL_CACHE_PREFIX = "rosario-shell-";
+const UPDATE_APPLIED_FLAG = "rosario-te-guio-updated";
+const OFFLINE_REQUIRED_FILES = [
+    "./index.html",
+    "./style.css",
+    "./script.js",
+    "./manifest.json",
+    "./android-chrome-192x192.png"
+];
+
+let serviceWorkerRegistration = null;
+let pendingServiceWorker = null;
+let isApplyingServiceWorkerUpdate = false;
 
 // Memory Game Data
 const memoryData = [
@@ -125,7 +138,7 @@ const triviaDecks = [
                     { text: "En educación", correct: true },
                     { text: "En política", correct: false }
                 ],
-                reference: "El CMD Noroeste ubicado en Provincias Unidas 150 bis fue inaugurado el 18 de septiembre de 2006, se encuentra emplazado en un predio con significativa vegetación, anteriormente ocupado por una fábrica. Tomó su nombre de quienes llevaron adelante una de las experiencias pedagógicas más innovadoras del país. Con el espíritu de la 'Escuela Nueva', Olga y Leticia Cossettini se desempeñaron durante fructuosos años a la cabeza de la Escuela Nº 69 'Dr. Gabriel Carrasco', ubicada en Barrio Alberdi y reconocida por las autoridades estatales como establecimiento educativo piloto. Contemplando las características de una población diversa (hijos de pescadores, obreros, comerciantes de clase media y familias acomodadas) las hermanas Cossettini realizaron una reforma profunda de la vida escolar, permitiendo -según dichos de la propia Olga- 'abrir de par en par las puertas de las aulas a la vida'.",
+                reference: "El CMD Noroeste ubicado en Provincias Unidas 150 bis fue inaugurado el 18 de septiembre de 2006, se encuentra emplazado en un predio con significativa vegetación, anteriormente ocupado por una fábrica. Tomó su nombre de quienes llevaron adelante una de las experiencias pedagógicas más innovadoras del país. Con el espíritu de la 'Escuela Nueva', Olga y Leticia Cossettini se desempeñaron durante fructuosos años a la cabeza de la Escuela Nº 69 'Dr. Gabriel Carrasco', ubicada en Barrio Alberdi y reconocida por las autoridades estatales como establecimiento educativo piloto. Contemplando las características de una población diversa (hijos de pescadores, obreros, comerciantes de clase media y familias acomodadas) las hermanas Cossettini realizaron una reforma profunda de la vida escolar, permitiendo —según dichos de la propia Olga— 'abrir de par en par las puertas de las aulas a la vida'.",
                 source: "Municipalidad de Rosario - www.rosario.gov.ar"
             }
         ]
@@ -255,6 +268,16 @@ const challengeBoard = document.getElementById("challenge-board");
 const challengeFeedback = document.getElementById("challenge-feedback");
 const challengeWordCount = document.getElementById("challenge-word-count");
 const challengeResetButton = document.getElementById("challenge-reset-btn");
+const offlineStatus = document.getElementById("offline-status");
+const offlineStatusLabel = document.getElementById("offline-status-label");
+const updateStatus = document.getElementById("update-status");
+const updateStatusLabel = document.getElementById("update-status-label");
+const clearCacheButton = document.getElementById("clear-cache-btn");
+const cacheFeedback = document.getElementById("cache-feedback");
+const updateBanner = document.getElementById("update-banner");
+const updateBannerTitle = document.getElementById("update-banner-title");
+const updateBannerText = document.getElementById("update-banner-text");
+const updateAppButton = document.getElementById("update-app-btn");
 
 // State Objects
 const memoryState = {
@@ -296,19 +319,71 @@ initializeApp();
 
 // Functions - Utilities
 function initializeApp() {
+    normalizeRefreshUrl();
     resetMemoryGame();
     resetChallengeGame();
+    initializeAppControls();
+    showAppliedUpdateFeedback();
     registerServiceWorker();
 }
 
-function registerServiceWorker() {
+function initializeAppControls() {
+    if (clearCacheButton) {
+        clearCacheButton.addEventListener("click", handleCacheReset);
+    }
+
+    if (updateAppButton) {
+        updateAppButton.addEventListener("click", applyPendingUpdate);
+    }
+
+    window.addEventListener("online", updateOfflineAvailability);
+    window.addEventListener("offline", updateOfflineAvailability);
+    window.addEventListener("focus", checkForServiceWorkerUpdate);
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            checkForServiceWorkerUpdate();
+        }
+    });
+
+    updateOfflineAvailability();
+}
+
+async function registerServiceWorker() {
     if (!("serviceWorker" in navigator) || window.location.protocol === "file:") {
+        setOfflineStatus(
+            window.location.protocol === "file:"
+                ? "Sin conexión no disponible con archivo local"
+                : "Sin conexión no disponible en este navegador",
+            "warning"
+        );
+        setCacheFeedback("Abrí esta app desde un servidor web para activar el modo offline y las actualizaciones.");
+        if (clearCacheButton) {
+            clearCacheButton.disabled = true;
+        }
         return;
     }
 
-    navigator.serviceWorker.register("./sw.js").catch(error => {
-        console.error("No se pudo registrar el service worker.", error);
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        updateOfflineAvailability();
+
+        if (!isApplyingServiceWorkerUpdate) {
+            return;
+        }
+
+        sessionStorage.setItem(UPDATE_APPLIED_FLAG, "1");
+        window.location.reload();
     });
+
+    try {
+        serviceWorkerRegistration = await navigator.serviceWorker.register("./sw.js");
+        bindServiceWorkerLifecycle(serviceWorkerRegistration);
+        await updateOfflineAvailability();
+        checkForServiceWorkerUpdate();
+    } catch (error) {
+        setOfflineStatus("No se pudo activar el modo offline", "danger");
+        setCacheFeedback("Falló el registro del modo offline. Revisá la conexión y volvé a cargar.");
+        console.error("No se pudo registrar el service worker.", error);
+    }
 }
 
 function openView(viewId) {
@@ -349,6 +424,257 @@ function shuffle(array) {
 function setNotice(element, message, type) {
     element.className = `notice notice--${type}`;
     element.textContent = message;
+}
+
+function normalizeRefreshUrl() {
+    const url = new URL(window.location.href);
+
+    if (!url.searchParams.has("refresh")) {
+        return;
+    }
+
+    url.searchParams.delete("refresh");
+    window.history.replaceState({}, "", url.toString());
+}
+
+function showAppliedUpdateFeedback() {
+    if (!sessionStorage.getItem(UPDATE_APPLIED_FLAG)) {
+        return;
+    }
+
+    sessionStorage.removeItem(UPDATE_APPLIED_FLAG);
+    setCacheFeedback("La webapp ya está actualizada con la versión más reciente.");
+}
+
+function setOfflineStatus(message, tone) {
+    if (!offlineStatus || !offlineStatusLabel) {
+        return;
+    }
+
+    offlineStatus.className = `status-pill status-pill--${tone}`;
+    offlineStatusLabel.textContent = message;
+}
+
+function setUpdateStatus(message, tone = "warning") {
+    if (!updateStatus || !updateStatusLabel) {
+        return;
+    }
+
+    updateStatus.className = `status-pill status-pill--${tone}`;
+    updateStatusLabel.textContent = message;
+}
+
+function setCacheFeedback(message) {
+    if (cacheFeedback) {
+        cacheFeedback.textContent = message;
+    }
+}
+
+async function isOfflineReady() {
+    if (!("caches" in window)) {
+        return false;
+    }
+
+    const cacheNames = await caches.keys();
+    const shellCacheName = cacheNames.find(cacheName => cacheName.startsWith(APP_SHELL_CACHE_PREFIX));
+
+    if (!shellCacheName) {
+        return false;
+    }
+
+    const cache = await caches.open(shellCacheName);
+    const cachedFiles = await Promise.all(
+        OFFLINE_REQUIRED_FILES.map(file => cache.match(file, { ignoreSearch: true }))
+    );
+
+    return cachedFiles.every(Boolean);
+}
+
+async function updateOfflineAvailability() {
+    if (window.location.protocol === "file:") {
+        setOfflineStatus("Sin conexión no disponible con archivo local", "warning");
+        return;
+    }
+
+    if (!("serviceWorker" in navigator) || !("caches" in window)) {
+        setOfflineStatus("Sin conexión no disponible en este navegador", "warning");
+        return;
+    }
+
+    try {
+        const ready = await isOfflineReady();
+
+        if (ready && navigator.onLine) {
+            setOfflineStatus("Disponible sin conexión", "success");
+            return;
+        }
+
+        if (ready && !navigator.onLine) {
+            setOfflineStatus("Abierta sin conexión", "success");
+            return;
+        }
+
+        if (!ready && navigator.onLine) {
+            setOfflineStatus("Guardado offline pendiente", "pending");
+            return;
+        }
+
+        setOfflineStatus("Sin copia offline guardada", "danger");
+    } catch (error) {
+        setOfflineStatus("No pudimos verificar el modo offline", "warning");
+    }
+}
+
+function showUpdateNotice(
+    title = "Nueva versión disponible.",
+    description = "Ya hay una actualización lista para aplicar en esta webapp."
+) {
+    pendingServiceWorker = serviceWorkerRegistration?.waiting || pendingServiceWorker;
+
+    if (updateStatus) {
+        updateStatus.classList.remove("is-hidden");
+        setUpdateStatus("Nueva versión lista para actualizar");
+    }
+
+    if (updateBanner) {
+        updateBanner.classList.remove("is-hidden");
+    }
+
+    if (updateBannerTitle) {
+        updateBannerTitle.textContent = title;
+    }
+
+    if (updateBannerText) {
+        updateBannerText.textContent = description;
+    }
+}
+
+function hideUpdateNotice() {
+    pendingServiceWorker = null;
+
+    if (updateStatus) {
+        updateStatus.classList.add("is-hidden");
+    }
+
+    if (updateBanner) {
+        updateBanner.classList.add("is-hidden");
+    }
+}
+
+function bindServiceWorkerLifecycle(registration) {
+    if (registration.waiting && navigator.serviceWorker.controller) {
+        pendingServiceWorker = registration.waiting;
+        showUpdateNotice();
+    }
+
+    registration.addEventListener("updatefound", () => {
+        const installingWorker = registration.installing;
+
+        if (!installingWorker) {
+            return;
+        }
+
+        installingWorker.addEventListener("statechange", () => {
+            if (installingWorker.state !== "installed") {
+                return;
+            }
+
+            updateOfflineAvailability();
+
+            if (!navigator.serviceWorker.controller) {
+                setCacheFeedback("La copia offline ya quedó guardada en este dispositivo.");
+                return;
+            }
+
+            pendingServiceWorker = registration.waiting || installingWorker;
+            showUpdateNotice();
+            setCacheFeedback("Hay una nueva versión lista para actualizar.");
+        });
+    });
+}
+
+function checkForServiceWorkerUpdate() {
+    if (!serviceWorkerRegistration || !navigator.onLine) {
+        return;
+    }
+
+    if (serviceWorkerRegistration.waiting && navigator.serviceWorker.controller) {
+        pendingServiceWorker = serviceWorkerRegistration.waiting;
+        showUpdateNotice();
+        return;
+    }
+
+    serviceWorkerRegistration.update().catch(() => {});
+}
+
+function applyPendingUpdate() {
+    if (updateAppButton) {
+        updateAppButton.disabled = true;
+    }
+
+    const waitingWorker = serviceWorkerRegistration?.waiting || pendingServiceWorker;
+
+    if (!waitingWorker) {
+        setCacheFeedback("Buscando la última versión disponible…");
+        checkForServiceWorkerUpdate();
+
+        window.setTimeout(() => {
+            if (updateAppButton) {
+                updateAppButton.disabled = false;
+            }
+        }, 1200);
+        return;
+    }
+
+    isApplyingServiceWorkerUpdate = true;
+    setCacheFeedback("Aplicando la nueva versión de la webapp…");
+    waitingWorker.postMessage({ type: "SKIP_WAITING" });
+}
+
+async function handleCacheReset() {
+    if (!clearCacheButton) {
+        return;
+    }
+
+    if (!navigator.onLine) {
+        setCacheFeedback("Necesitás conexión para limpiar la caché y descargar la versión más reciente.");
+        return;
+    }
+
+    const originalLabel = clearCacheButton.textContent;
+    clearCacheButton.disabled = true;
+    clearCacheButton.textContent = "Limpiando…";
+    hideUpdateNotice();
+    setCacheFeedback("Limpiando la caché local y recargando la versión más reciente…");
+
+    try {
+        if ("serviceWorker" in navigator) {
+            const registration = await navigator.serviceWorker.getRegistration("./");
+
+            if (registration) {
+                await registration.unregister();
+            }
+        }
+
+        if ("caches" in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(
+                cacheNames
+                    .filter(cacheName => cacheName.startsWith("rosario-"))
+                    .map(cacheName => caches.delete(cacheName))
+            );
+        }
+
+        sessionStorage.removeItem(UPDATE_APPLIED_FLAG);
+
+        const refreshUrl = new URL(window.location.href);
+        refreshUrl.searchParams.set("refresh", Date.now().toString());
+        window.location.replace(refreshUrl.toString());
+    } catch (error) {
+        clearCacheButton.disabled = false;
+        clearCacheButton.textContent = originalLabel;
+        setCacheFeedback("No se pudo limpiar la caché. Probá otra vez.");
+    }
 }
 
 function createGameCard(frontContentFn) {
