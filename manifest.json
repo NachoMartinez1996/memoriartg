@@ -1,0 +1,37 @@
+{
+    "id": "./",
+    "name": "Rosario Te Guío | Juegos",
+    "short_name": "Rosario Te Guío",
+    "description": "Juego de memoria y desafío de trivias sobre Rosario para jugar online u offline.",
+    "lang": "es-AR",
+    "dir": "ltr",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#fbf4de",
+    "theme_color": "#0b5ea8",
+    "categories": [
+        "games",
+        "education"
+    ],
+    "icons": [
+        {
+            "src": "./Favicon/android-icon-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "./Favicon/android-icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "./Favicon/android-icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}
