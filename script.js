@@ -83,7 +83,7 @@ const triviaDecks = [
                 source: "Revista Historias de Aquí a la Vuelta, Nº 13, Año 1991."
             },
             {
-                text: "¿Quién expresó estas palabras enviadas desde París, donde estaba cumpliendo una misión diplomática?: '...Por mi parte, mi sueño dorado es habitar en algún lugar de nuestras campañas de América. Ojalá pudiera tener una bonita quinta cerca del Paraná o en el Rosario...'",
+                text: "¿Quién expresó estas palabras enviadas desde París, donde estaba cumpliendo una misión diplomática?: '...Por mi parte, mi sueño dorado es habitar en algún lugar de nuestras campañas de América. Ojalá pudiera tener una bonita quinta cerca del Paraná o en el Rosario...'?",
                 options: [
                     { text: "Justo José de Urquiza", correct: false },
                     { text: "Juan Manuel de Rosas", correct: false },
