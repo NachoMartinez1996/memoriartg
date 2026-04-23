@@ -275,6 +275,7 @@ const challengeState = {
     triviaMode: false,
     roundComplete: false,
     currentTriviaCard: null,
+    currentTriviaQuestions: [],
     currentQuestionIndex: 0,
     triviaScore: 0,
     triviaTotalQuestions: 0,
@@ -319,6 +320,7 @@ function openView(viewId) {
         clearChallengeAdvanceTimeout();
         challengeState.triviaMode = false;
         challengeState.currentTriviaCard = null;
+        challengeState.currentTriviaQuestions = [];
         enableChallengeBoard();
     }
     
@@ -666,9 +668,10 @@ function handleChallengeCardClick(cardElement, cardData) {
 function startTriviaMode(cardElement, cardData) {
     challengeState.triviaMode = true;
     challengeState.currentTriviaCard = cardData;
+    challengeState.currentTriviaQuestions = shuffle(cardData.deck.questions);
     challengeState.currentQuestionIndex = 0;
     challengeState.triviaScore = 0;
-    challengeState.triviaTotalQuestions = cardData.deck.questions.length;
+    challengeState.triviaTotalQuestions = challengeState.currentTriviaQuestions.length;
 
     // Disable challenge board
     disableChallengeBoard();
@@ -678,9 +681,8 @@ function startTriviaMode(cardElement, cardData) {
 }
 
 function showTriviaQuestion() {
-    const deck = challengeState.currentTriviaCard.deck;
     const questionIndex = challengeState.currentQuestionIndex;
-    const question = deck.questions[questionIndex];
+    const question = challengeState.currentTriviaQuestions[questionIndex];
 
     if (!question) {
         endTriviaMode();
@@ -795,6 +797,7 @@ function handleTriviaAnswer(optionBtn, selectedOption, question) {
 function endTriviaMode() {
     challengeState.triviaMode = false;
     challengeState.currentTriviaCard = null;
+    challengeState.currentTriviaQuestions = [];
     clearChallengeAdvanceTimeout();
     const finalScore = challengeState.triviaScore;
     const totalQuestions = challengeState.triviaTotalQuestions;
@@ -813,6 +816,7 @@ function resetChallengeGame() {
     challengeState.triviaMode = false;
     challengeState.roundComplete = false;
     challengeState.currentTriviaCard = null;
+    challengeState.currentTriviaQuestions = [];
     challengeState.currentQuestionIndex = 0;
     challengeState.triviaScore = 0;
     challengeState.triviaTotalQuestions = 0;
@@ -837,6 +841,7 @@ function finishChallengeRound(message, type) {
     challengeState.triviaMode = false;
     challengeState.roundComplete = true;
     challengeState.currentTriviaCard = null;
+    challengeState.currentTriviaQuestions = [];
     clearChallengeAdvanceTimeout();
     revealAllChallengeCards();
     disableChallengeBoard();
